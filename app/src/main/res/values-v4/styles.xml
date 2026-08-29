@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="@android:style/Theme.Black">
+    </style>
+    <style name="app_theme_light" parent="@android:style/Theme.Light">
+    </style>
+    <style name="ripple" parent="">
+    </style>
+    <style name="ripple_borderless" parent="">
+    </style>
+</resources>

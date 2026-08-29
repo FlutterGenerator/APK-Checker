@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dia_title_set_installer">自定义应用包安装程序</string>
+    <string name="toast_no_system_installer">抱歉，未找到应用包安装程序！</string>
+    <string name="menu_set_installer">自定义应用包安装程序</string>
+</resources>

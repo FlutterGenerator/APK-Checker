@@ -1,0 +1,45 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.by_syk.apkchecker'
+    compileSdkVersion 36
+
+    defaultConfig {
+        applicationId 'com.by_syk.apkchecker'
+        minSdkVersion 7
+        targetSdkVersion 36
+        versionCode 17011100
+        versionName "1.4.7.nightly"
+    }
+	
+	signingConfig signingConfigs.debug
+	
+	signingConfigs {
+        release {
+            storeFile file("HunMod.jks")
+            storePassword "HunMod"
+            keyAlias "HunMod"
+            keyPassword "HunMod"
+        }
+    }
+
+    buildTypes {
+        release {
+		    signingConfig signingConfigs.release
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    // implementation fileTree(dir: 'libs', include: ['*.jar'])
+    // implementation files('libs/zip4j-2.11.6.jar')
+    implementation 'net.lingala.zip4j:zip4j:2.11.6'
+}

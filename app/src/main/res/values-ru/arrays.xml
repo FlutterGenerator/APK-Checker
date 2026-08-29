@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="apk_names">
+        <item>[Имя приложения]_v[Версия]([Код версии]).apk</item>
+        <item>[Имя пакета]_v[Версия]([Код версии]).apk</item>
+        <item>[Имя приложения]([Имя пакета])_v[Версия]([Код версии]).apk</item>
+    </array>
+    <array name="apk_names_2">
+        <item>[Имя приложения]_v[Версия].apk</item>
+        <item>[Имя приложения]_v[Версия]([Код версии]).apk</item>
+        <item>[Package name]_v[Версия]([Код версии]).apk</item>
+        <item>[Имя приложения]([Имя пакета])_v[Версия]([Код версии]).apk</item>
+    </array>
+    <array name="pic_names">
+        <item>ic_launcher_[Имя приложения].png</item>
+        <item>ic_launcher_[Имя пакета].png</item>
+        <item>ic_launcher_[Имя приложения]([Имя пакета]).png</item>
+    </array>
+    <array name="items">
+        <item>Первая установка (УСТАНОВЛЕНО)</item>
+        <item>Последнее обновление (УСТАНОВЛЕНО)</item>
+        <item>Установлено из</item>
+        <item>Путь</item>
+        <item>Название</item>
+        <item>Размер</item>
+        <item>Иконка</item>
+        <item>Размер иконки</item>
+        <item>Имя пакета</item>
+        <item>Имя приложения</item>
+        <item>Версия</item>
+        <item>Код версии</item>
+        <item>Время сборки</item>
+        <item>Мин. версия SDK</item>
+        <item>Макс. версия SDK</item>
+        <item>* Поддерживаемые ABIs</item>
+        <item>Запрашиваемые разрешения</item>
+        <item>Разрешения</item>
+        <item>Флаги</item>
+        <item>Запускаемые активити (УСТАНОВЛЕНО)</item>
+        <item>Активити</item>
+        <item>Сервисы</item>
+        <item>Контент провайдеры</item>
+        <item>Ресиверы передач</item>
+        <item>* Подписи</item>
+        <item>* Сертификат отпечатков пальцев</item>
+        <item>* Начало сертификат</item>
+        <item>* Конец сертификат</item>
+    </array>
+</resources>

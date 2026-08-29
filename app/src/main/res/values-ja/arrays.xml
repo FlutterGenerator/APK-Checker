@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="apk_names">
+        <item>アプリ名_vバージョン名(バージョンコード).apk</item>
+        <item>パッケージ名_vバージョン名(バージョンコード).apk</item>
+        <item>アプリ名(パッケージ名)_vバージョン名(バージョンコード).apk</item>
+    </array>
+    <array name="apk_names_2">
+        <item>アプリ名_vバージョン名.apk</item>
+        <item>アプリ名_vバージョン名(バージョンコード).apk</item>
+        <item>パッケージ名_vバージョン名(バージョンコード).apk</item>
+        <item>アプリ名(パッケージ名)_vバージョン名(バージョンコード).apk</item>
+    </array>
+    <array name="pic_names">
+        <item>ic_launcher_アプリ名.png</item>
+        <item>ic_launcher_パッケージ名.png</item>
+        <item>ic_launcher_アプリ名(パッケージ名).png</item>
+    </array>
+    <array name="items">
+        <item>最初のインストール (既存のアプリ)</item>
+        <item>最後の更新 (既存のアプリ)</item>
+        <item>インストール元</item>
+        <item>ファイルのパス</item>
+        <item>ファイル名</item>
+        <item>ファイルのサイズ</item>
+        <item>アイコン</item>
+        <item>アイコンの解像度</item>
+        <item>パッケージ名</item>
+        <item>アプリ名</item>
+        <item>バージョン名</item>
+        <item>バージョンコード</item>
+        <item>コンパイル時間</item>
+        <item>最小SDKバージョン</item>
+        <item>目標SDKバージョン</item>
+        <item>* サポートされているのABI</item>
+        <item>権限</item>
+        <item>カスタム権限</item>
+        <item>フラグ</item>
+        <item>ランチャーアクティビティ (既存のアプリ)</item>
+        <item>アクティビティ</item>
+        <item>サービス</item>
+        <item>コンテンツプロバイダ</item>
+        <item>ブロードキャストレシーバ</item>
+        <item>* 署名</item>
+        <item>* 証明書の指紋</item>
+        <item>* 有効期間の開始</item>
+        <item>* 有効期間の終了</item>
+    </array>
+</resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="padding_text">3dp</dimen>
+    <dimen name="padding_page">3dp</dimen>
+    <dimen name="padding_dialog">6dp</dimen>
+    <dimen name="span_ver">6dp</dimen>
+</resources>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dia_title_set_installer">自定义打包安装程序</string>
+    <string name="toast_cleared_defaults">已清除默认设置</string>
+    <string name="toast_no_system_installer">抱歉，未找到打包安装程序！</string>
+    <string name="menu_set_installer">自定义打包安装程序</string>
+    <string name="menu_clear_defaults">清除默认设置</string>
+    <string name="item_installed_from">安装源 (已安装)</string>
+</resources>

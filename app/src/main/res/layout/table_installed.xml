@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:padding="@dimen/padding_text"
+        android:text="@string/title_installed"/>
+    <include layout="@layout/table_rows"/>
+</TableLayout>

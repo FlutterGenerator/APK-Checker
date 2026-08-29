@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:icon="@android:drawable/ic_menu_edit"
+        android:id="@+id/menu_rename"
+        android:title="@string/menu_rename"
+        android:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/menu_save_icon"
+        android:title="@string/menu_save_icon"
+        android:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_view_in_market"
+        android:title="@string/menu_view_in_market"
+        android:showAsAction="never"/>
+    <item
+        android:title="@string/menu_more"
+        android:showAsAction="never">
+        <menu>
+            <item
+                android:id="@+id/menu_clear_defaults"
+                android:title="@string/menu_clear_defaults"/>
+            <item
+                android:id="@+id/menu_uninstall"
+                android:title="@string/menu_uninstall"/>
+            <item
+                android:id="@+id/menu_help"
+                android:title="@string/menu_help"/>
+        </menu>
+    </item>
+</menu>

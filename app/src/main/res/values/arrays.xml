@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="apk_names_format">
+        <item>%1$s_v%3$s(%4$d)</item>
+        <item>%2$s_v%3$s(%4$d)</item>
+        <item>%1$s(%2$s)_v%3$s(%4$d)</item>
+    </array>
+    <array name="apk_names_format_2">
+        <item>%1$s_v%3$s</item>
+        <item>%1$s_v%3$s(%4$d)</item>
+        <item>%2$s_v%3$s(%4$d)</item>
+        <item>%1$s(%2$s)_v%3$s(%4$d)</item>
+    </array>
+    <array name="apk_names">
+        <item>[App name]_v[Version name]([Version code]).apk</item>
+        <item>[Package name]_v[Version name]([Version code]).apk</item>
+        <item>[App name]([Package name])_v[Version name]([Version code]).apk</item>
+    </array>
+    <array name="apk_names_2">
+        <item>[App name]_v[Version name].apk</item>
+        <item>[App name]_v[Version name]([Version code]).apk</item>
+        <item>[Package name]_v[Version name]([Version code]).apk</item>
+        <item>[App name]([Package name])_v[Version name]([Version code]).apk</item>
+    </array>
+    <array name="pic_names_format">
+        <item>ic_launcher_%1$s</item>
+        <item>ic_launcher_%2$s</item>
+        <item>ic_launcher_%1$s(%2$s)</item>
+    </array>
+    <array name="pic_names">
+        <item>ic_launcher_[App name].png</item>
+        <item>ic_launcher_[Package name].png</item>
+        <item>ic_launcher_[App name]([Package name]).png</item>
+    </array>
+    <array name="items">
+        <item>First install (INSTALLED)</item>
+        <item>Last update (INSTALLED)</item>
+        <item>@string/item_installed_from</item>
+        <item>File path</item>
+        <item>File name</item>
+        <item>File size</item>
+        <item>Launcher icon</item>
+        <item>Icon size</item>
+        <item>Package name</item>
+        <item>App name</item>
+        <item>Version name</item>
+        <item>Version code</item>
+        <item>Compiling time</item>
+        <item>Min SDK version</item>
+        <item>Target SDK version</item>
+        <item>* Supported ABIs</item>
+        <item>Requested permissions</item>
+        <item>Permissions</item>
+        <item>Flags</item>
+        <item>Launcher activity (INSTALLED)</item>
+        <item>Activities</item>
+        <item>Services</item>
+        <item>Content providers</item>
+        <item>Broadcast receivers</item>
+        <item>* Signatures</item>
+        <item>* Certificate fingerprints</item>
+        <item>* Certificate start</item>
+        <item>* Certificate end</item>
+    </array>
+</resources>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="apk_names">
+        <item>应用名_v版本名(版本号).apk</item>
+        <item>包名_v版本名(版本号).apk</item>
+        <item>应用名(包名)_v版本名(版本号).apk</item>
+    </array>
+    <array name="apk_names_2">
+        <item>应用名_v版本名.apk</item>
+        <item>应用名_v版本名(版本号).apk</item>
+        <item>包名_v版本名(版本号).apk</item>
+        <item>应用名(包名)_v版本名(版本号).apk</item>
+    </array>
+    <array name="pic_names">
+        <item>ic_launcher_应用名.png</item>
+        <item>ic_launcher_包名.png</item>
+        <item>ic_launcher_应用名(包名).png</item>
+    </array>
+    <array name="items">
+        <item>首次安装于 (已安装)</item>
+        <item>最近更新于 (已安装)</item>
+        <item>@string/item_installed_from</item>
+        <item>文件路径</item>
+        <item>文件名</item>
+        <item>文件大小</item>
+        <item>启动图标</item>
+        <item>图标尺寸</item>
+        <item>包名</item>
+        <item>应用名</item>
+        <item>版本名</item>
+        <item>版本号</item>
+        <item>打包于</item>
+        <item>兼容SDK版本</item>
+        <item>目标SDK版本</item>
+        <item>* 兼容CPU架构</item>
+        <item>权限</item>
+        <item>自定义权限</item>
+        <item>标志</item>
+        <item>启动Activity (已安装)</item>
+        <item>Activity</item>
+        <item>服务</item>
+        <item>内容提供程序</item>
+        <item>广播接收器</item>
+        <item>* 签名信息</item>
+        <item>* 签名指纹</item>
+        <item>* 签名生效于</item>
+        <item>* 签名失效于</item>
+    </array>
+</resources>

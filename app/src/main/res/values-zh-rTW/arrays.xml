@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="apk_names">
+        <item>APP名_v版本名(版本編號).apk</item>
+        <item>套件名_v版本名(版本編號).apk</item>
+        <item>APP名(套件名)_v版本名(版本編號).apk</item>
+    </array>
+    <array name="apk_names_2">
+        <item>APP名_v版本名.apk</item>
+        <item>APP名_v版本名(版本編號).apk</item>
+        <item>套件名_v版本名(版本編號).apk</item>
+        <item>APP名(套件名)_v版本名(版本編號).apk</item>
+    </array>
+    <array name="pic_names">
+        <item>ic_launcher_APP名.png</item>
+        <item>ic_launcher_套件名.png</item>
+        <item>ic_launcher_APP名(套件名).png</item>
+    </array>
+    <array name="items">
+        <item>初次安裝於 (已安裝)</item>
+        <item>最近更新於 (已安裝)</item>
+        <item>安裝源自</item>
+        <item>檔案路徑</item>
+        <item>檔案名</item>
+        <item>檔案大小</item>
+        <item>圖示</item>
+        <item>圖示尺寸</item>
+        <item>套件名</item>
+        <item>APP名</item>
+        <item>版本名</item>
+        <item>版本編號</item>
+        <item>編譯時間</item>
+        <item>相容SDK版本</item>
+        <item>目標SDK版本</item>
+        <item>* 相容CPU架構</item>
+        <item>權限</item>
+        <item>自訂權限</item>
+        <item>標誌</item>
+        <item>啟動Activity (已安裝)</item>
+        <item>Activity</item>
+        <item>服務</item>
+        <item>內容供應程式</item>
+        <item>廣播接收器</item>
+        <item>* 簽名資訊</item>
+        <item>* 簽名指紋</item>
+        <item>* 簽名生效於</item>
+        <item>* 簽名失效於</item>
+    </array>
+</resources>

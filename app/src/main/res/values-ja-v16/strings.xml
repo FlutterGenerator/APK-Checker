@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dia_title_set_installer">パッケージインストーラを設定</string>
+    <string name="toast_no_system_installer">パッケージインストーラが見つかりません</string>
+    <string name="menu_set_installer">標準起動設定をクリア</string>
+</resources>
