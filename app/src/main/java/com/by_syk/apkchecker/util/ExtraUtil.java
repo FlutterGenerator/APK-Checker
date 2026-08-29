@@ -9,9 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.ComponentInfo;
 import android.content.pm.PackageInfo;
-import android.content.pm.PackageItemInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -466,6 +464,55 @@ public class ExtraUtil {
             return false;
         }
 
+        Bitmap bitmap = null;
+
+        if (drawable instanceof BitmapDrawable) {
+            bitmap = ((BitmapDrawable) drawable).getBitmap();
+        }
+
+        if (bitmap == null) {
+            return false;
+        }
+
+        if (TextUtils.isEmpty(str)) {
+            str = "NULL";
+        }
+
+        if (TextUtils.isEmpty(str2)) {
+            str2 = "NULL";
+        }
+
+        if (TextUtils.isEmpty(str3)) {
+            str3 = "%1$s_%2$s";
+        }
+
+        String iconName;
+
+        try {
+            iconName = String.format(
+                    str3,
+                    str,
+                    str2
+            );
+        } catch (Exception e) {
+            iconName = str + "_" + str2;
+        }
+
+        /*
+         * Начиная с Android 10 (API 29) действует scoped storage:
+         * прямая запись файла по пути .../Pictures/... через
+         * java.io.File больше не разрешена (с targetSdkVersion 29+
+         * система её молча блокирует). Правильный способ — писать
+         * через MediaStore.
+         */
+        if (C.SDK >= 29) {
+            return saveIconViaMediaStore(
+                    context,
+                    bitmap,
+                    iconName + ".png"
+            );
+        }
+
         File externalCacheDir = context.getExternalCacheDir();
 
         if (externalCacheDir == null) {
@@ -484,19 +531,11 @@ public class ExtraUtil {
 
             outputStream = new FileOutputStream(file);
 
-            Bitmap bitmap = null;
-
-            if (drawable instanceof BitmapDrawable) {
-                bitmap = ((BitmapDrawable) drawable).getBitmap();
-            }
-
-            if (bitmap != null) {
-                compressed = bitmap.compress(
-                        Bitmap.CompressFormat.PNG,
-                        100,
-                        outputStream
-                );
-            }
+            compressed = bitmap.compress(
+                    Bitmap.CompressFormat.PNG,
+                    100,
+                    outputStream
+            );
 
         } catch (FileNotFoundException e) {
 
@@ -532,30 +571,6 @@ public class ExtraUtil {
             picturesDirectory.mkdirs();
         }
 
-        if (TextUtils.isEmpty(str)) {
-            str = "NULL";
-        }
-
-        if (TextUtils.isEmpty(str2)) {
-            str2 = "NULL";
-        }
-
-        if (TextUtils.isEmpty(str3)) {
-            str3 = "%1$s_%2$s";
-        }
-
-        String iconName;
-
-        try {
-            iconName = String.format(
-                    str3,
-                    str,
-                    str2
-            );
-        } catch (Exception e) {
-            iconName = str + "_" + str2;
-        }
-
         File uniquePngFile = getUniquePngFile(
                 picturesDirectory,
                 iconName,
@@ -571,6 +586,61 @@ public class ExtraUtil {
                 file,
                 uniquePngFile
         );
+    }
+
+    @TargetApi(29)
+    private static boolean saveIconViaMediaStore(
+            Context context,
+            Bitmap bitmap,
+            String fileName) {
+
+        android.content.ContentValues values =
+                new android.content.ContentValues();
+
+        values.put(
+                android.provider.MediaStore.Images.Media.DISPLAY_NAME,
+                fileName
+        );
+        values.put(
+                android.provider.MediaStore.Images.Media.MIME_TYPE,
+                "image/png"
+        );
+        values.put(
+                android.provider.MediaStore.Images.Media.RELATIVE_PATH,
+                Environment.DIRECTORY_PICTURES
+        );
+
+        android.content.ContentResolver resolver =
+                context.getContentResolver();
+
+        android.net.Uri itemUri =
+                resolver.insert(
+                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        values
+                );
+
+        if (itemUri == null) {
+            return false;
+        }
+
+        try (java.io.OutputStream out =
+                     resolver.openOutputStream(itemUri)) {
+
+            if (out == null) {
+                return false;
+            }
+
+            return bitmap.compress(
+                    Bitmap.CompressFormat.PNG,
+                    100,
+                    out
+            );
+
+        } catch (IOException e) {
+
+            e.printStackTrace();
+            return false;
+        }
     }
 
     private static File getUniquePngFile(

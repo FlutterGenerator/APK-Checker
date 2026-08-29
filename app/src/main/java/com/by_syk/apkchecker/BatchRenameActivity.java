@@ -175,7 +175,7 @@ public class BatchRenameActivity extends Activity {
                     }
                 }
             }
-            return (String[]) this.failedFileNameList.toArray(new String[this.failedFileNameList.size()]);
+            return this.failedFileNameList.toArray(new String[this.failedFileNameList.size()]);
         }
 
         /* JADX INFO: renamed from: onProgressUpdate, reason: avoid collision after fix types in other method */

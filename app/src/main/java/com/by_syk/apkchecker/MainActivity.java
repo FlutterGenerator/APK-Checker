@@ -337,6 +337,20 @@ public class MainActivity extends Activity {
 
 
     /* JADX INFO: Access modifiers changed from: private */
+    private Uri fileToShareableUri(File file) {
+
+        if (C.SDK >= 24) {
+
+            return com.by_syk.apkchecker.util.SimpleFileProvider.getUriForFile(
+                    "com.by_syk.apkchecker.fileprovider",
+                    file
+            );
+        }
+
+        return Uri.fromFile(file);
+    }
+
+
     private boolean installAPK() {
         Uri uriFromFile;
 
@@ -349,26 +363,79 @@ public class MainActivity extends Activity {
             if (realPath == null) {
                 uriFromFile = getIntent().getData();
             } else {
-                uriFromFile = Uri.fromFile(new File(realPath));
+                uriFromFile = fileToShareableUri(new File(realPath));
             }
         } else {
-            uriFromFile = Uri.fromFile(this.apkFile);
+            uriFromFile = fileToShareableUri(this.apkFile);
         }
 
-        String[] installer = {
-                this.sp.getString(
-                        C.SP_INSTALLER_PACKAGE_NAME,
-                        C.INSTALLERS[0][0]
-                ),
-                this.sp.getString(
-                        C.SP_INSTALLER_CLASS_NAME,
-                        C.INSTALLERS[0][1]
-                )
-        };
+        /*
+         * Если пользователь явно выбрал конкретный установщик
+         * через "Задать установщик" — пробуем сначала его
+         * (явным Intent'ом по имени пакета/класса).
+         *
+         * Если нет — сразу используем НЕЯВНЫЙ Intent, чтобы
+         * систем сама нашла подходящий установщик пакетов.
+         * Захардкоженные имена классов установщика ненадёжны:
+         * они отличаются между версиями Android и прошивками
+         * (Samsung/AOSP/и т.д.), и явный запуск по имени класса
+         * может кидать не только ActivityNotFoundException, но и
+         * SecurityException, если активность не экспортирована.
+         */
+        if (this.sp.contains(C.SP_INSTALLER_PACKAGE_NAME)) {
+
+            String[] installer = {
+                    this.sp.getString(
+                            C.SP_INSTALLER_PACKAGE_NAME,
+                            C.INSTALLERS[0][0]
+                    ),
+                    this.sp.getString(
+                            C.SP_INSTALLER_CLASS_NAME,
+                            C.INSTALLERS[0][1]
+                    )
+            };
+
+            Intent explicitIntent = new Intent(Intent.ACTION_VIEW);
+            explicitIntent.setClassName(installer[0], installer[1]);
+            explicitIntent.setDataAndType(
+                    uriFromFile,
+                    "application/vnd.android.package-archive"
+            );
+            explicitIntent.addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+            );
+
+            try {
+
+                startActivity(explicitIntent);
+                finish();
+                this.is_installing = true;
+                return true;
+
+            } catch (Throwable e) {
+
+                e.printStackTrace();
+
+                Log.d(
+                        C.LOG_TAG,
+                        String.format(
+                                "Failed to launch custom installer (%1$s, %2$s), falling back.",
+                                installer[0],
+                                installer[1]
+                        )
+                );
+                // Не получилось — пробуем неявный Intent ниже.
+            }
+        }
 
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setClassName(installer[0], installer[1]);
-        intent.setData(uriFromFile);
+        intent.setDataAndType(
+                uriFromFile,
+                "application/vnd.android.package-archive"
+        );
+        intent.addFlags(
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+        );
 
         // Исправлено: устраняет ambiguous putExtra()
         if (C.SDK >= 17) {
@@ -391,34 +458,9 @@ public class MainActivity extends Activity {
             this.is_installing = true;
             return true;
 
-        } catch (ActivityNotFoundException e) {
+        } catch (Throwable e) {
 
-            String[] foundInstaller =
-                    ExtraUtil.findPackageInstaller(this);
-
-            if (foundInstaller != null) {
-                this.sp
-                        .put(
-                                C.SP_INSTALLER_PACKAGE_NAME,
-                                foundInstaller[0]
-                        )
-                        .put(
-                                C.SP_INSTALLER_CLASS_NAME,
-                                foundInstaller[1]
-                        )
-                        .write();
-
-                return installAPK();
-            }
-
-            Log.d(
-                    C.LOG_TAG,
-                    String.format(
-                            "Failed to launch package installer (%1$s, %2$s).",
-                            installer[0],
-                            installer[1]
-                    )
-            );
+            e.printStackTrace();
 
             Toast.makeText(
                     this,
@@ -1341,33 +1383,7 @@ public class MainActivity extends Activity {
             return;
         }
 
-        boolean remember =
-                sp.getBoolean(
-                        C.SP_REMEMBER_PIC_NAME_FORMAT
-                );
-
-        /*
-         * Поведение исходного приложения:
-         * если формат уже запомнен, сохраняем сразу.
-         */
-        if (remember) {
-
-            if (!appInfo.is_installed &&
-                    !save_icon_firstly_un) {
-
-                save_icon_firstly_un = true;
-                saveIcon(appInfo);
-                return;
-            }
-
-            if (appInfo.is_installed &&
-                    !save_icon_firstly_in) {
-
-                save_icon_firstly_in = true;
-                saveIcon(appInfo);
-                return;
-            }
-        }
+        
 
 
         AlertDialog.Builder builder;

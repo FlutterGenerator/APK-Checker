@@ -1,16 +1,36 @@
 <?xml version='1.0' encoding='utf-8'?>
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.by_syk.apkchecker">
 
     <!-- Изменение или удаление данных на общем накопителе -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"
+        tools:ignore="ScopedStorage" />
 
     <!-- Просмотр данных на общем накопителе -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
 
     <!-- запросы на удаление пакетов -->
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES"/>
+
+    <!-- разрешение на установку пакетов (обязательно с Android 8.0+) -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"
+        tools:ignore="RequestInstallPackagesPolicy" />
+
+    <!--
+        Приложению по своей сути нужно проверять ЛЮБОЙ произвольный
+        пакет (какой бы APK ни открыл пользователь), поэтому заранее
+        перечислить их в <queries> невозможно. Начиная с Android 11
+        (API 30) без этого разрешения система скрывает информацию
+        о других установленных приложениях (getPackageInfo и т.п.
+        для чужих пакетов начинают возвращать "не найдено").
+    -->
+    <uses-permission
+	android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="PackageVisibilityPolicy,QueryAllPackagesPermission" />
 
     <application
         android:allowBackup="true"
@@ -74,6 +94,12 @@
             </intent-filter>
 
         </activity>
+
+        <provider
+            android:name=".util.SimpleFileProvider"
+            android:authorities="com.by_syk.apkchecker.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true" />
 
     </application>
 

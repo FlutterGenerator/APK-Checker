@@ -7,10 +7,10 @@ import android.content.pm.PackageManager;
 
 /* JADX INFO: loaded from: classes.dex */
 public class PoorAppInfo {
-    private Context context = (Context) null;
-    private PackageManager packageManager = (PackageManager) null;
-    private PackageInfo packageInfo = (PackageInfo) null;
-    private ApplicationInfo applicationInfo = (ApplicationInfo) null;
+    private Context context = null;
+    private PackageManager packageManager = null;
+    private PackageInfo packageInfo = null;
+    private ApplicationInfo applicationInfo = null;
     public boolean is_ok = false;
     public String filePath = "";
     public String packageName = "";

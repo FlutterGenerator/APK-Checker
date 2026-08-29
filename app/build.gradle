@@ -18,8 +18,8 @@ android {
         applicationId 'com.by_syk.apkchecker'
         minSdkVersion 7
         targetSdkVersion 36
-        versionCode 17011100
-        versionName "1.4.7.nightly"
+        versionCode 18011100
+        versionName "1.4.8.nightly"
         signingConfig signingConfigs.release
     }
 
@@ -36,7 +36,7 @@ android {
 }
 
 dependencies {
-    // implementation fileTree(dir: 'libs', include: ['*.jar'])
-    // implementation files('libs/zip4j-2.11.6.jar')
+   // implementation fileTree(dir: 'libs', include: ['*.jar'])
+   // implementation files('libs/zip4j-2.11.6.jar')
     implementation 'net.lingala.zip4j:zip4j:2.11.6'
 }

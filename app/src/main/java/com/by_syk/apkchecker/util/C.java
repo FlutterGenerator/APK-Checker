@@ -61,7 +61,7 @@ public class C {
         CF,
         CS,
         CE,
-        IS;
+        IS,
     }
 
     public static String getSDKIntStr2(int i) {

@@ -1,5 +1,6 @@
 package com.by_syk.apkchecker;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -67,6 +68,7 @@ public class HelloActivity extends Activity {
         this.sp.save(C.SP_HIDE_ICON, true);
     }
 
+    @SuppressLint("GestureBackNavigation")
     @Override // android.app.Activity
     public void onBackPressed() {
         warningDialog();
