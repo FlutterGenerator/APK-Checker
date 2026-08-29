@@ -11,18 +11,6 @@ import android.provider.OpenableColumns;
 import java.io.File;
 import java.io.FileNotFoundException;
 
-/**
- * Лёгкий провайдер для передачи APK-файлов другим приложениям
- * (системному установщику пакетов) через content:// Uri.
- *
- * Начиная с Android 7.0 (API 24) система запрещает передавать
- * "голые" file:// Uri другим приложениям через Intent —
- * это вызывает FileUriExposedException. Стандартное решение —
- * androidx.core.content.FileProvider, но проект не использует
- * AndroidX (minSdkVersion 7 конфликтует с современными версиями
- * этой библиотеки), поэтому здесь реализован собственный
- * минимальный аналог без внешних зависимостей.
- */
 public class SimpleFileProvider extends ContentProvider {
 
     public static Uri getUriForFile(String authority, File file) {
@@ -35,7 +23,18 @@ public class SimpleFileProvider extends ContentProvider {
     }
 
     private static File fileFromUri(Uri uri) {
-        return new File(uri.getPath());
+
+        if (uri == null) {
+            return null;
+        }
+
+        String path = uri.getPath();
+
+        if (path == null || path.length() == 0) {
+            return null;
+        }
+
+        return new File(path);
     }
 
     @Override
@@ -53,13 +52,25 @@ public class SimpleFileProvider extends ContentProvider {
 
         File file = fileFromUri(uri);
 
+        if (file == null || !file.exists() || !file.canRead()) {
+            return null;
+        }
+
         String[] cols = {
                 OpenableColumns.DISPLAY_NAME,
                 OpenableColumns.SIZE
         };
 
-        MatrixCursor cursor = new MatrixCursor(cols, 1);
-        cursor.addRow(new Object[]{file.getName(), file.length()});
+        MatrixCursor cursor =
+                new MatrixCursor(cols, 1);
+
+        cursor.addRow(
+                new Object[]{
+                        file.getName(),
+                        file.length()
+                }
+        );
+
         return cursor;
     }
 
@@ -69,13 +80,24 @@ public class SimpleFileProvider extends ContentProvider {
     }
 
     @Override
-    public Uri insert(Uri uri, ContentValues values) {
-        throw new UnsupportedOperationException("Insert not supported.");
+    public Uri insert(
+            Uri uri,
+            ContentValues values) {
+
+        throw new UnsupportedOperationException(
+                "Insert not supported."
+        );
     }
 
     @Override
-    public int delete(Uri uri, String selection, String[] selectionArgs) {
-        throw new UnsupportedOperationException("Delete not supported.");
+    public int delete(
+            Uri uri,
+            String selection,
+            String[] selectionArgs) {
+
+        throw new UnsupportedOperationException(
+                "Delete not supported."
+        );
     }
 
     @Override
@@ -85,15 +107,27 @@ public class SimpleFileProvider extends ContentProvider {
             String selection,
             String[] selectionArgs) {
 
-        throw new UnsupportedOperationException("Update not supported.");
+        throw new UnsupportedOperationException(
+                "Update not supported."
+        );
     }
 
     @Override
     public ParcelFileDescriptor openFile(
             Uri uri,
-            String mode) throws FileNotFoundException {
+            String mode)
+            throws FileNotFoundException {
 
         File file = fileFromUri(uri);
+
+        if (file == null ||
+                !file.exists() ||
+                !file.canRead()) {
+
+            throw new FileNotFoundException(
+                    "APK not found: " + uri
+            );
+        }
 
         return ParcelFileDescriptor.open(
                 file,
