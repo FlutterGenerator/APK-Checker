@@ -46,6 +46,7 @@ import com.by_syk.apkchecker.util.C;
 import com.by_syk.apkchecker.util.ExtraUtil;
 import com.by_syk.apkchecker.util.SP;
 import com.by_syk.apkchecker.util.UriAnalyser;
+import com.by_syk.apkchecker.util.SimpleFileProvider;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -339,138 +340,431 @@ public class MainActivity extends Activity {
     /* JADX INFO: Access modifiers changed from: private */
     private Uri fileToShareableUri(File file) {
 
-        if (C.SDK >= 24) {
+    if (file == null ||
+            !file.exists() ||
+            !file.isFile() ||
+            !file.canRead()) {
 
-            return com.by_syk.apkchecker.util.SimpleFileProvider.getUriForFile(
-                    "com.by_syk.apkchecker.fileprovider",
-                    file
-            );
-        }
+        return null;
+    }
+
+    if (C.SDK >= 24) {
+
+        return SimpleFileProvider.getUriForFile(
+                getPackageName() + ".fileprovider",
+                file
+        );
+    }
+
+    return Uri.fromFile(file);
+}
+
 
         return Uri.fromFile(file);
     }
 
 
     private boolean installAPK() {
-        Uri uriFromFile;
 
-        if (this.apkFile == null) {
-            String realPath = UriAnalyser.getRealPath(
-                    this,
-                    getIntent().getData()
+    // Android 8.0+ требует разрешение на установку APK
+    if (C.SDK >= 26 &&
+            !getPackageManager().canRequestPackageInstalls()) {
+
+        try {
+
+            Intent settingsIntent =
+                    new Intent(
+                            android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES
+                    );
+
+            settingsIntent.setData(
+                    Uri.parse(
+                            "package:" + getPackageName()
+                    )
             );
 
-            if (realPath == null) {
-                uriFromFile = getIntent().getData();
-            } else {
-                uriFromFile = fileToShareableUri(new File(realPath));
-            }
-        } else {
-            uriFromFile = fileToShareableUri(this.apkFile);
+            startActivity(settingsIntent);
+
+        } catch (Throwable e) {
+
+            Log.e(
+                    C.LOG_TAG,
+                    "Cannot open unknown sources settings",
+                    e
+            );
+
+            Toast.makeText(
+                    this,
+                    "Разрешите установку неизвестных приложений",
+                    Toast.LENGTH_LONG
+            ).show();
         }
 
-        /*
-         * Если пользователь явно выбрал конкретный установщик
-         * через "Задать установщик" — пробуем сначала его
-         * (явным Intent'ом по имени пакета/класса).
-         *
-         * Если нет — сразу используем НЕЯВНЫЙ Intent, чтобы
-         * систем сама нашла подходящий установщик пакетов.
-         * Захардкоженные имена классов установщика ненадёжны:
-         * они отличаются между версиями Android и прошивками
-         * (Samsung/AOSP/и т.д.), и явный запуск по имени класса
-         * может кидать не только ActivityNotFoundException, но и
-         * SecurityException, если активность не экспортирована.
-         */
-        if (this.sp.contains(C.SP_INSTALLER_PACKAGE_NAME)) {
+        return false;
+    }
 
-            String[] installer = {
-                    this.sp.getString(
-                            C.SP_INSTALLER_PACKAGE_NAME,
-                            C.INSTALLERS[0][0]
-                    ),
-                    this.sp.getString(
-                            C.SP_INSTALLER_CLASS_NAME,
-                            C.INSTALLERS[0][1]
-                    )
-            };
 
-            Intent explicitIntent = new Intent(Intent.ACTION_VIEW);
-            explicitIntent.setClassName(installer[0], installer[1]);
+    /*
+     * Получаем APK.
+     */
+    File file = this.apkFile;
+
+    if (file == null ||
+            !file.exists() ||
+            !file.isFile() ||
+            !file.canRead()) {
+
+        Uri inputUri = getIntent().getData();
+
+        if (inputUri != null) {
+
+            try {
+
+                String realPath =
+                        UriAnalyser.getRealPath(
+                                this,
+                                inputUri
+                        );
+
+                if (realPath != null &&
+                        realPath.length() > 0) {
+
+                    File candidate =
+                            new File(realPath);
+
+                    if (candidate.exists() &&
+                            candidate.isFile() &&
+                            candidate.canRead()) {
+
+                        file = candidate;
+                    }
+                }
+
+            } catch (Throwable e) {
+
+                Log.e(
+                        C.LOG_TAG,
+                        "getRealPath failed",
+                        e
+                );
+            }
+
+
+            /*
+             * Android 10/11+:
+             * если реальный путь получить нельзя,
+             * копируем content:// URI в cache приложения.
+             */
+            if (file == null ||
+                    !file.exists() ||
+                    !file.isFile() ||
+                    !file.canRead()) {
+
+                try {
+
+                    file =
+                            UriAnalyser.extractFile(
+                                    this,
+                                    inputUri,
+                                    null
+                            );
+
+                } catch (Throwable e) {
+
+                    Log.e(
+                            C.LOG_TAG,
+                            "Failed to extract APK",
+                            e
+                    );
+
+                    file = null;
+                }
+            }
+        }
+    }
+
+
+    /*
+     * Проверяем APK.
+     */
+    if (file == null ||
+            !file.exists() ||
+            !file.isFile() ||
+            !file.canRead()) {
+
+        Log.e(
+                C.LOG_TAG,
+                "APK file is not available"
+        );
+
+        Toast.makeText(
+                this,
+                R.string.toast_no_system_installer,
+                Toast.LENGTH_LONG
+        ).show();
+
+        return false;
+    }
+
+
+    this.apkFile = file;
+
+
+    /*
+     * Получаем content:// URI.
+     *
+     * Android 7+ нельзя передавать file://
+     * другому приложению.
+     */
+    Uri uriFromFile =
+            fileToShareableUri(file);
+
+
+    if (uriFromFile == null) {
+
+        Log.e(
+                C.LOG_TAG,
+                "Unable to create APK content URI"
+        );
+
+        return false;
+    }
+
+
+    Log.d(
+            C.LOG_TAG,
+            "APK file: " + file.getAbsolutePath()
+    );
+
+    Log.d(
+            C.LOG_TAG,
+            "APK size: " + file.length()
+    );
+
+    Log.d(
+            C.LOG_TAG,
+            "APK URI: " + uriFromFile
+    );
+
+
+    /*
+     * ---------------------------------------------------------
+     * 1. Пользовательский установщик
+     * ---------------------------------------------------------
+     */
+    if (this.sp.contains(
+            C.SP_INSTALLER_PACKAGE_NAME
+    )) {
+
+        String packageName =
+                this.sp.getString(
+                        C.SP_INSTALLER_PACKAGE_NAME,
+                        null
+                );
+
+        String className =
+                this.sp.getString(
+                        C.SP_INSTALLER_CLASS_NAME,
+                        null
+                );
+
+
+        if (!TextUtils.isEmpty(packageName) &&
+                !TextUtils.isEmpty(className)) {
+
+            Intent explicitIntent =
+                    new Intent(
+                            Intent.ACTION_INSTALL_PACKAGE
+                    );
+
+            explicitIntent.setClassName(
+                    packageName,
+                    className
+            );
+
             explicitIntent.setDataAndType(
                     uriFromFile,
                     "application/vnd.android.package-archive"
             );
+
             explicitIntent.addFlags(
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
             );
 
+            explicitIntent.addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK
+            );
+
+
+            /*
+             * Явно выдаём установщику право читать APK.
+             */
+            if (C.SDK >= 23) {
+
+                grantUriPermission(
+                        packageName,
+                        uriFromFile,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                );
+            }
+
+
             try {
 
                 startActivity(explicitIntent);
-                finish();
+
                 this.is_installing = true;
+
+                finish();
+
                 return true;
 
             } catch (Throwable e) {
 
-                e.printStackTrace();
-
-                Log.d(
+                Log.e(
                         C.LOG_TAG,
-                        String.format(
-                                "Failed to launch custom installer (%1$s, %2$s), falling back.",
-                                installer[0],
-                                installer[1]
-                        )
+                        "Custom installer failed: "
+                                + packageName
+                                + " / "
+                                + className,
+                        e
                 );
-                // Не получилось — пробуем неявный Intent ниже.
             }
         }
+    }
 
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(
+
+    /*
+     * ---------------------------------------------------------
+     * 2. Основной способ — системный установщик
+     * ---------------------------------------------------------
+     */
+    Intent intent =
+            new Intent(
+                    Intent.ACTION_INSTALL_PACKAGE
+            );
+
+    intent.setDataAndType(
+            uriFromFile,
+            "application/vnd.android.package-archive"
+    );
+
+    intent.addFlags(
+            Intent.FLAG_GRANT_READ_URI_PERMISSION
+    );
+
+    intent.addFlags(
+            Intent.FLAG_ACTIVITY_NEW_TASK
+    );
+
+
+    /*
+     * Передаём исходный URI, если он был.
+     */
+    if (C.SDK >= 17) {
+
+        Uri originatingUri =
+                getIntent().getData();
+
+        if (originatingUri != null) {
+
+            intent.putExtra(
+                    Intent.EXTRA_ORIGINATING_URI,
+                    originatingUri
+            );
+        }
+    }
+
+
+    try {
+
+        startActivity(intent);
+
+        this.is_installing = true;
+
+        finish();
+
+        return true;
+
+    } catch (ActivityNotFoundException e) {
+
+        Log.e(
+                C.LOG_TAG,
+                "No APK installer found",
+                e
+        );
+
+    } catch (SecurityException e) {
+
+        Log.e(
+                C.LOG_TAG,
+                "SecurityException starting APK installer",
+                e
+        );
+
+    } catch (Throwable e) {
+
+        Log.e(
+                C.LOG_TAG,
+                "Failed to start APK installer",
+                e
+        );
+    }
+
+
+    /*
+     * ---------------------------------------------------------
+     * 3. Запасной вариант для некоторых прошивок
+     * ---------------------------------------------------------
+     */
+    try {
+
+        Intent fallback =
+                new Intent(
+                        Intent.ACTION_VIEW
+                );
+
+        fallback.setDataAndType(
                 uriFromFile,
                 "application/vnd.android.package-archive"
         );
-        intent.addFlags(
+
+        fallback.addFlags(
                 Intent.FLAG_GRANT_READ_URI_PERMISSION
         );
 
-        // Исправлено: устраняет ambiguous putExtra()
-        if (C.SDK >= 17) {
-            android.os.Parcelable originatingUri =
-                    getIntent().getParcelableExtra(
-                            Intent.EXTRA_ORIGINATING_URI
-                    );
+        fallback.addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK
+        );
 
-            if (originatingUri != null) {
-                intent.putExtra(
-                        Intent.EXTRA_ORIGINATING_URI,
-                        originatingUri
-                );
-            }
-        }
 
-        try {
-            startActivity(intent);
-            finish();
-            this.is_installing = true;
-            return true;
+        startActivity(fallback);
 
-        } catch (Throwable e) {
+        this.is_installing = true;
 
-            e.printStackTrace();
+        finish();
 
-            Toast.makeText(
-                    this,
-                    R.string.toast_no_system_installer,
-                    Toast.LENGTH_SHORT
-            ).show();
+        return true;
 
-            return false;
-        }
+    } catch (Throwable e) {
+
+        Log.e(
+                C.LOG_TAG,
+                "Fallback installer failed",
+                e
+        );
     }
+
+
+    Toast.makeText(
+            this,
+            R.string.toast_no_system_installer,
+            Toast.LENGTH_LONG
+    ).show();
+
+    return false;
+}
+}
 
 
     private class LoadDataTask
