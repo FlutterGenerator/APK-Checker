@@ -45,8 +45,8 @@ import com.by_syk.apkchecker.util.AppInfo;
 import com.by_syk.apkchecker.util.C;
 import com.by_syk.apkchecker.util.ExtraUtil;
 import com.by_syk.apkchecker.util.SP;
-import com.by_syk.apkchecker.util.UriAnalyser;
 import com.by_syk.apkchecker.util.SimpleFileProvider;
+import com.by_syk.apkchecker.util.UriAnalyser;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -55,6 +55,7 @@ import java.util.List;
 public class MainActivity extends Activity {
 
     private SP sp;
+
     private Uri rawUri;
     private File apkFile;
 
@@ -90,7 +91,10 @@ public class MainActivity extends Activity {
         dev_mode = sp.getBoolean(C.SP_DEV_MODE);
 
         if (dev_mode) {
-            light_theme = sp.getBoolean(C.SP_LIGHT_THEME);
+
+            light_theme = sp.getBoolean(
+                    C.SP_LIGHT_THEME
+            );
 
             if (light_theme) {
                 setTheme(R.style.app_theme_light);
@@ -111,7 +115,8 @@ public class MainActivity extends Activity {
                 ) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
 
             if (shouldShowRequestPermissionRationale(
-                    "android.permission.WRITE_EXTERNAL_STORAGE")) {
+                    "android.permission.WRITE_EXTERNAL_STORAGE"
+            )) {
 
                 Toast.makeText(
                         this,
@@ -131,8 +136,10 @@ public class MainActivity extends Activity {
 
             init();
 
-            new LoadDataTask(this, false)
-                    .execute(new String[0]);
+            new LoadDataTask(
+                    this,
+                    false
+            ).execute(new String[0]);
         }
     }
 
@@ -140,9 +147,9 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
 
-        super.onDestroy();
-
         is_running = false;
+
+        super.onDestroy();
 
         File externalCacheDir = getExternalCacheDir();
 
@@ -151,7 +158,9 @@ public class MainActivity extends Activity {
             File[] files = externalCacheDir.listFiles();
 
             if (files != null) {
+
                 for (File file : files) {
+
                     try {
                         file.delete();
                     } catch (Exception ignored) {
@@ -182,8 +191,10 @@ public class MainActivity extends Activity {
 
             init();
 
-            new LoadDataTask(this, false)
-                    .execute(new String[0]);
+            new LoadDataTask(
+                    this,
+                    false
+            ).execute(new String[0]);
         }
     }
 
@@ -210,7 +221,10 @@ public class MainActivity extends Activity {
                         true
                 );
 
-                sp.save(C.SP_HIDE_ICON, true);
+                sp.save(
+                        C.SP_HIDE_ICON,
+                        true
+                );
 
             } catch (ClassNotFoundException e) {
 
@@ -220,9 +234,8 @@ public class MainActivity extends Activity {
             }
         }
 
-        Button button = findViewById(
-                R.id.bt_install
-        );
+        Button button =
+                findViewById(R.id.bt_install);
 
         if (button == null) {
             return;
@@ -263,26 +276,30 @@ public class MainActivity extends Activity {
     @TargetApi(21)
     private void preInstallAPK() {
 
-        final View root = findViewById(R.id.ll_root);
+        final View root =
+                findViewById(R.id.ll_root);
 
         if (root == null) {
             installAPK();
             return;
         }
 
-        final int width = root.getMeasuredWidth();
-        final int height = root.getMeasuredHeight();
+        final int width =
+                root.getMeasuredWidth();
+
+        final int height =
+                root.getMeasuredHeight();
+
+        if (width <= 0 || height <= 0) {
+            installAPK();
+            return;
+        }
 
         final int radius =
                 ((int) Math.sqrt(
                         (width * width) +
                                 (height * height)
                 )) + 1;
-
-        if (width <= 0 || height <= 0) {
-            installAPK();
-            return;
-        }
 
         Animator animator =
                 ViewAnimationUtils.createCircularReveal(
@@ -312,13 +329,17 @@ public class MainActivity extends Activity {
 
                         super.onAnimationEnd(animation);
 
-                        root.setVisibility(View.INVISIBLE);
+                        root.setVisibility(
+                                View.INVISIBLE
+                        );
 
                         if (installAPK()) {
                             return;
                         }
 
-                        root.setVisibility(View.VISIBLE);
+                        root.setVisibility(
+                                View.VISIBLE
+                        );
 
                         ViewAnimationUtils
                                 .createCircularReveal(
@@ -337,165 +358,467 @@ public class MainActivity extends Activity {
     }
 
 
-    /* JADX INFO: Access modifiers changed from: private */
+    /**
+     * Converts an APK File into a URI that can safely
+     * be passed to another application.
+     *
+     * Android 7.0+ does not allow exposing file:// URI
+     * to another application.
+     */
     private Uri fileToShareableUri(File file) {
 
-    if (file == null ||
-            !file.exists() ||
-            !file.isFile() ||
-            !file.canRead()) {
+        if (file == null ||
+                !file.exists() ||
+                !file.isFile() ||
+                !file.canRead()) {
 
-        return null;
-    }
-
-    if (C.SDK >= 24) {
-
-        return SimpleFileProvider.getUriForFile(
-                getPackageName() + ".fileprovider",
-                file
-        );
-    }
-
-    return Uri.fromFile(file);
-}
-
-
-        return Uri.fromFile(file);
-    }
-
-
-    private boolean installAPK() {
-
-    // Android 8.0+ требует разрешение на установку APK
-    if (C.SDK >= 26 &&
-            !getPackageManager().canRequestPackageInstalls()) {
-
-        try {
-
-            Intent settingsIntent =
-                    new Intent(
-                            android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES
-                    );
-
-            settingsIntent.setData(
-                    Uri.parse(
-                            "package:" + getPackageName()
-                    )
-            );
-
-            startActivity(settingsIntent);
-
-        } catch (Throwable e) {
-
-            Log.e(
-                    C.LOG_TAG,
-                    "Cannot open unknown sources settings",
-                    e
-            );
-
-            Toast.makeText(
-                    this,
-                    "Разрешите установку неизвестных приложений",
-                    Toast.LENGTH_LONG
-            ).show();
+            return null;
         }
 
-        return false;
-    }
-
-
-    /*
-     * Получаем APK.
-     */
-    File file = this.apkFile;
-
-    if (file == null ||
-            !file.exists() ||
-            !file.isFile() ||
-            !file.canRead()) {
-
-        Uri inputUri = getIntent().getData();
-
-        if (inputUri != null) {
+        if (C.SDK >= 24) {
 
             try {
 
-                String realPath =
-                        UriAnalyser.getRealPath(
-                                this,
-                                inputUri
-                        );
-
-                if (realPath != null &&
-                        realPath.length() > 0) {
-
-                    File candidate =
-                            new File(realPath);
-
-                    if (candidate.exists() &&
-                            candidate.isFile() &&
-                            candidate.canRead()) {
-
-                        file = candidate;
-                    }
-                }
+                return SimpleFileProvider.getUriForFile(
+                        getPackageName() + ".fileprovider",
+                        file
+                );
 
             } catch (Throwable e) {
 
                 Log.e(
                         C.LOG_TAG,
-                        "getRealPath failed",
+                        "Unable to create FileProvider URI",
                         e
                 );
+
+                return null;
+            }
+        }
+
+        return Uri.fromFile(file);
+    }
+
+
+    /**
+     * Starts APK installation.
+     *
+     * Android 8.0+ requires REQUEST_INSTALL_PACKAGES
+     * permission to be granted by the user.
+     */
+    private boolean installAPK() {
+
+        /*
+         * Android 8.0+
+         */
+        if (C.SDK >= 26 &&
+                !getPackageManager().canRequestPackageInstalls()) {
+
+            try {
+
+                Intent settingsIntent =
+                        new Intent(
+                                android.provider.Settings
+                                        .ACTION_MANAGE_UNKNOWN_APP_SOURCES
+                        );
+
+                settingsIntent.setData(
+                        Uri.parse(
+                                "package:" +
+                                        getPackageName()
+                        )
+                );
+
+                startActivity(settingsIntent);
+
+            } catch (Throwable e) {
+
+                Log.e(
+                        C.LOG_TAG,
+                        "Cannot open unknown sources settings",
+                        e
+                );
+
+                Toast.makeText(
+                        this,
+                        "Разрешите установку неизвестных приложений",
+                        Toast.LENGTH_LONG
+                ).show();
             }
 
+            return false;
+        }
 
-            /*
-             * Android 10/11+:
-             * если реальный путь получить нельзя,
-             * копируем content:// URI в cache приложения.
-             */
-            if (file == null ||
-                    !file.exists() ||
-                    !file.isFile() ||
-                    !file.canRead()) {
 
+        /*
+         * Получаем APK.
+         */
+        File file = this.apkFile;
+
+        if (file == null ||
+                !file.exists() ||
+                !file.isFile() ||
+                !file.canRead()) {
+
+            Uri inputUri =
+                    getIntent().getData();
+
+            if (inputUri != null) {
+
+                /*
+                 * Сначала пытаемся получить настоящий путь.
+                 */
                 try {
 
-                    file =
-                            UriAnalyser.extractFile(
+                    String realPath =
+                            UriAnalyser.getRealPath(
                                     this,
-                                    inputUri,
-                                    null
+                                    inputUri
                             );
+
+                    if (!TextUtils.isEmpty(realPath)) {
+
+                        File candidate =
+                                new File(realPath);
+
+                        if (candidate.exists() &&
+                                candidate.isFile() &&
+                                candidate.canRead()) {
+
+                            file = candidate;
+                        }
+                    }
 
                 } catch (Throwable e) {
 
                     Log.e(
                             C.LOG_TAG,
-                            "Failed to extract APK",
+                            "getRealPath failed",
                             e
                     );
+                }
 
-                    file = null;
+
+                /*
+                 * Android 10/11+:
+                 * если реальный путь получить невозможно,
+                 * копируем content:// URI в cache.
+                 */
+                if (file == null ||
+                        !file.exists() ||
+                        !file.isFile() ||
+                        !file.canRead()) {
+
+                    try {
+
+                        file =
+                                UriAnalyser.extractFile(
+                                        this,
+                                        inputUri,
+                                        null
+                                );
+
+                    } catch (Throwable e) {
+
+                        Log.e(
+                                C.LOG_TAG,
+                                "Failed to extract APK",
+                                e
+                        );
+
+                        file = null;
+                    }
                 }
             }
         }
-    }
 
 
-    /*
-     * Проверяем APK.
-     */
-    if (file == null ||
-            !file.exists() ||
-            !file.isFile() ||
-            !file.canRead()) {
+        /*
+         * Проверяем APK.
+         */
+        if (file == null ||
+                !file.exists() ||
+                !file.isFile() ||
+                !file.canRead()) {
 
-        Log.e(
+            Log.e(
+                    C.LOG_TAG,
+                    "APK file is not available"
+            );
+
+            Toast.makeText(
+                    this,
+                    R.string.toast_no_system_installer,
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return false;
+        }
+
+
+        this.apkFile = file;
+
+
+        /*
+         * Получаем безопасный URI.
+         */
+        Uri uriFromFile =
+                fileToShareableUri(file);
+
+        if (uriFromFile == null) {
+
+            Log.e(
+                    C.LOG_TAG,
+                    "Unable to create APK content URI"
+            );
+
+            Toast.makeText(
+                    this,
+                    R.string.toast_no_system_installer,
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return false;
+        }
+
+
+        Log.d(
                 C.LOG_TAG,
-                "APK file is not available"
+                "APK file: " +
+                        file.getAbsolutePath()
         );
+
+        Log.d(
+                C.LOG_TAG,
+                "APK size: " +
+                        file.length()
+        );
+
+        Log.d(
+                C.LOG_TAG,
+                "APK URI: " +
+                        uriFromFile
+        );
+
+
+        /*
+         * =====================================================
+         * 1. Пользовательский установщик
+         * =====================================================
+         */
+        if (sp.contains(
+                C.SP_INSTALLER_PACKAGE_NAME
+        )) {
+
+            String packageName =
+                    sp.getString(
+                            C.SP_INSTALLER_PACKAGE_NAME,
+                            null
+                    );
+
+            String className =
+                    sp.getString(
+                            C.SP_INSTALLER_CLASS_NAME,
+                            null
+                    );
+
+            if (!TextUtils.isEmpty(packageName) &&
+                    !TextUtils.isEmpty(className)) {
+
+                Intent explicitIntent =
+                        new Intent(
+                                Intent.ACTION_INSTALL_PACKAGE
+                        );
+
+                explicitIntent.setClassName(
+                        packageName,
+                        className
+                );
+
+                explicitIntent.setDataAndType(
+                        uriFromFile,
+                        "application/vnd.android.package-archive"
+                );
+
+                explicitIntent.addFlags(
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                );
+
+                explicitIntent.addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK
+                );
+
+
+                /*
+                 * Явно выдаём установщику доступ
+                 * к APK.
+                 */
+                if (C.SDK >= 23) {
+
+                    try {
+
+                        grantUriPermission(
+                                packageName,
+                                uriFromFile,
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        );
+
+                    } catch (Throwable e) {
+
+                        Log.e(
+                                C.LOG_TAG,
+                                "grantUriPermission failed",
+                                e
+                        );
+                    }
+                }
+
+
+                try {
+
+                    startActivity(explicitIntent);
+
+                    is_installing = true;
+
+                    finish();
+
+                    return true;
+
+                } catch (Throwable e) {
+
+                    Log.e(
+                            C.LOG_TAG,
+                            "Custom installer failed: " +
+                                    packageName +
+                                    " / " +
+                                    className,
+                            e
+                    );
+                }
+            }
+        }
+
+
+        /*
+         * =====================================================
+         * 2. Системный установщик
+         * =====================================================
+         */
+        Intent intent =
+                new Intent(
+                        Intent.ACTION_INSTALL_PACKAGE
+                );
+
+        intent.setDataAndType(
+                uriFromFile,
+                "application/vnd.android.package-archive"
+        );
+
+        intent.addFlags(
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+        );
+
+        intent.addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK
+        );
+
+
+        /*
+         * Передаём исходный URI.
+         */
+        if (C.SDK >= 17) {
+
+            Uri originatingUri =
+                    getIntent().getData();
+
+            if (originatingUri != null) {
+
+                intent.putExtra(
+                        Intent.EXTRA_ORIGINATING_URI,
+                        originatingUri
+                );
+            }
+        }
+
+
+        try {
+
+            startActivity(intent);
+
+            is_installing = true;
+
+            finish();
+
+            return true;
+
+        } catch (ActivityNotFoundException e) {
+
+            Log.e(
+                    C.LOG_TAG,
+                    "No APK installer found",
+                    e
+            );
+
+        } catch (SecurityException e) {
+
+            Log.e(
+                    C.LOG_TAG,
+                    "SecurityException starting APK installer",
+                    e
+            );
+
+        } catch (Throwable e) {
+
+            Log.e(
+                    C.LOG_TAG,
+                    "Failed to start APK installer",
+                    e
+            );
+        }
+
+
+        /*
+         * =====================================================
+         * 3. ACTION_VIEW fallback
+         * =====================================================
+         */
+        try {
+
+            Intent fallback =
+                    new Intent(
+                            Intent.ACTION_VIEW
+                    );
+
+            fallback.setDataAndType(
+                    uriFromFile,
+                    "application/vnd.android.package-archive"
+            );
+
+            fallback.addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+            );
+
+            fallback.addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK
+            );
+
+            startActivity(fallback);
+
+            is_installing = true;
+
+            finish();
+
+            return true;
+
+        } catch (Throwable e) {
+
+            Log.e(
+                    C.LOG_TAG,
+                    "Fallback installer failed",
+                    e
+            );
+        }
+
 
         Toast.makeText(
                 this,
@@ -505,266 +828,6 @@ public class MainActivity extends Activity {
 
         return false;
     }
-
-
-    this.apkFile = file;
-
-
-    /*
-     * Получаем content:// URI.
-     *
-     * Android 7+ нельзя передавать file://
-     * другому приложению.
-     */
-    Uri uriFromFile =
-            fileToShareableUri(file);
-
-
-    if (uriFromFile == null) {
-
-        Log.e(
-                C.LOG_TAG,
-                "Unable to create APK content URI"
-        );
-
-        return false;
-    }
-
-
-    Log.d(
-            C.LOG_TAG,
-            "APK file: " + file.getAbsolutePath()
-    );
-
-    Log.d(
-            C.LOG_TAG,
-            "APK size: " + file.length()
-    );
-
-    Log.d(
-            C.LOG_TAG,
-            "APK URI: " + uriFromFile
-    );
-
-
-    /*
-     * ---------------------------------------------------------
-     * 1. Пользовательский установщик
-     * ---------------------------------------------------------
-     */
-    if (this.sp.contains(
-            C.SP_INSTALLER_PACKAGE_NAME
-    )) {
-
-        String packageName =
-                this.sp.getString(
-                        C.SP_INSTALLER_PACKAGE_NAME,
-                        null
-                );
-
-        String className =
-                this.sp.getString(
-                        C.SP_INSTALLER_CLASS_NAME,
-                        null
-                );
-
-
-        if (!TextUtils.isEmpty(packageName) &&
-                !TextUtils.isEmpty(className)) {
-
-            Intent explicitIntent =
-                    new Intent(
-                            Intent.ACTION_INSTALL_PACKAGE
-                    );
-
-            explicitIntent.setClassName(
-                    packageName,
-                    className
-            );
-
-            explicitIntent.setDataAndType(
-                    uriFromFile,
-                    "application/vnd.android.package-archive"
-            );
-
-            explicitIntent.addFlags(
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-            );
-
-            explicitIntent.addFlags(
-                    Intent.FLAG_ACTIVITY_NEW_TASK
-            );
-
-
-            /*
-             * Явно выдаём установщику право читать APK.
-             */
-            if (C.SDK >= 23) {
-
-                grantUriPermission(
-                        packageName,
-                        uriFromFile,
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION
-                );
-            }
-
-
-            try {
-
-                startActivity(explicitIntent);
-
-                this.is_installing = true;
-
-                finish();
-
-                return true;
-
-            } catch (Throwable e) {
-
-                Log.e(
-                        C.LOG_TAG,
-                        "Custom installer failed: "
-                                + packageName
-                                + " / "
-                                + className,
-                        e
-                );
-            }
-        }
-    }
-
-
-    /*
-     * ---------------------------------------------------------
-     * 2. Основной способ — системный установщик
-     * ---------------------------------------------------------
-     */
-    Intent intent =
-            new Intent(
-                    Intent.ACTION_INSTALL_PACKAGE
-            );
-
-    intent.setDataAndType(
-            uriFromFile,
-            "application/vnd.android.package-archive"
-    );
-
-    intent.addFlags(
-            Intent.FLAG_GRANT_READ_URI_PERMISSION
-    );
-
-    intent.addFlags(
-            Intent.FLAG_ACTIVITY_NEW_TASK
-    );
-
-
-    /*
-     * Передаём исходный URI, если он был.
-     */
-    if (C.SDK >= 17) {
-
-        Uri originatingUri =
-                getIntent().getData();
-
-        if (originatingUri != null) {
-
-            intent.putExtra(
-                    Intent.EXTRA_ORIGINATING_URI,
-                    originatingUri
-            );
-        }
-    }
-
-
-    try {
-
-        startActivity(intent);
-
-        this.is_installing = true;
-
-        finish();
-
-        return true;
-
-    } catch (ActivityNotFoundException e) {
-
-        Log.e(
-                C.LOG_TAG,
-                "No APK installer found",
-                e
-        );
-
-    } catch (SecurityException e) {
-
-        Log.e(
-                C.LOG_TAG,
-                "SecurityException starting APK installer",
-                e
-        );
-
-    } catch (Throwable e) {
-
-        Log.e(
-                C.LOG_TAG,
-                "Failed to start APK installer",
-                e
-        );
-    }
-
-
-    /*
-     * ---------------------------------------------------------
-     * 3. Запасной вариант для некоторых прошивок
-     * ---------------------------------------------------------
-     */
-    try {
-
-        Intent fallback =
-                new Intent(
-                        Intent.ACTION_VIEW
-                );
-
-        fallback.setDataAndType(
-                uriFromFile,
-                "application/vnd.android.package-archive"
-        );
-
-        fallback.addFlags(
-                Intent.FLAG_GRANT_READ_URI_PERMISSION
-        );
-
-        fallback.addFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK
-        );
-
-
-        startActivity(fallback);
-
-        this.is_installing = true;
-
-        finish();
-
-        return true;
-
-    } catch (Throwable e) {
-
-        Log.e(
-                C.LOG_TAG,
-                "Fallback installer failed",
-                e
-        );
-    }
-
-
-    Toast.makeText(
-            this,
-            R.string.toast_no_system_installer,
-            Toast.LENGTH_LONG
-    ).show();
-
-    return false;
-}
-}
 
 
     private class LoadDataTask
@@ -819,11 +882,12 @@ public class MainActivity extends Activity {
                             activity.appInfoUninstalled
                                     .initAndAnalysis(
                                             activity,
-                                            ExtraUtil.getPackageInfoUninstalled(
-                                                    activity,
-                                                    activity.apkFile,
-                                                    activity.hide_flags
-                                            ),
+                                            ExtraUtil
+                                                    .getPackageInfoUninstalled(
+                                                            activity,
+                                                            activity.apkFile,
+                                                            activity.hide_flags
+                                                    ),
                                             false,
                                             activity.light_theme,
                                             activity.hide_flags,
@@ -840,15 +904,26 @@ public class MainActivity extends Activity {
                             activity.appInfoInstalled
                                     .initAndAnalysis(
                                             activity,
-                                            ExtraUtil.getPackageInfoInstalled(
-                                                    activity,
-                                                    activity.appInfoUninstalled.packageName,
-                                                    activity.appInfoUninstalled.hide_flags
-                                            ),
+                                            ExtraUtil
+                                                    .getPackageInfoInstalled(
+                                                            activity,
+                                                            activity
+                                                                    .appInfoUninstalled
+                                                                    .packageName,
+                                                            activity
+                                                                    .appInfoUninstalled
+                                                                    .hide_flags
+                                                    ),
                                             true,
-                                            activity.appInfoUninstalled.light_theme,
-                                            activity.appInfoUninstalled.hide_flags,
-                                            activity.appInfoUninstalled.extra_label
+                                            activity
+                                                    .appInfoUninstalled
+                                                    .light_theme,
+                                            activity
+                                                    .appInfoUninstalled
+                                                    .hide_flags,
+                                            activity
+                                                    .appInfoUninstalled
+                                                    .extra_label
                                     );
                 }
 
@@ -868,7 +943,8 @@ public class MainActivity extends Activity {
 
 
         @Override
-        protected void onPostExecute(Boolean result) {
+        protected void onPostExecute(
+                Boolean result) {
 
             super.onPostExecute(result);
 
@@ -878,7 +954,10 @@ public class MainActivity extends Activity {
 
                     if (ExtraUtil.checkPackageExists(
                             activity,
-                            activity.appInfoUninstalled.packageName)) {
+                            activity
+                                    .appInfoUninstalled
+                                    .packageName
+                    )) {
 
                         activity.enableShowInstalled();
                     }
@@ -891,20 +970,25 @@ public class MainActivity extends Activity {
                     );
 
                     if (activity.fail_to_rename) {
+
                         activity.renameDialog(
                                 activity.appInfoUninstalled
                         );
                     }
 
                     if (activity.fail_to_save_icon) {
+
                         activity.saveIconDialog(
                                 activity.appInfoUninstalled
                         );
                     }
 
                     if (activity.fail_to_goto_market) {
+
                         activity.gotoMarket(
-                                activity.appInfoUninstalled.packageName,
+                                activity
+                                        .appInfoUninstalled
+                                        .packageName,
                                 false
                         );
                     }
@@ -924,6 +1008,7 @@ public class MainActivity extends Activity {
                         );
                     }
                 }
+
 
                 new Handler().postDelayed(
                         new Runnable() {
@@ -960,7 +1045,8 @@ public class MainActivity extends Activity {
                                         ((ScrollView) sv)
                                                 .smoothScrollTo(
                                                         0,
-                                                        include.getMeasuredHeight()
+                                                        include
+                                                                .getMeasuredHeight()
                                                 );
                                     }
                                 }
@@ -1000,7 +1086,9 @@ public class MainActivity extends Activity {
                             getString(R.string.dia_loading)
                     );
 
-                    progressDialog.setIndeterminate(false);
+                    progressDialog.setIndeterminate(
+                            false
+                    );
 
                     progressDialog.show();
 
@@ -1013,7 +1101,10 @@ public class MainActivity extends Activity {
 
                     if (progressBar != null) {
 
-                        progressBar.setIndeterminate(true);
+                        progressBar.setIndeterminate(
+                                true
+                        );
+
                         progressBar.setVisibility(
                                 View.VISIBLE
                         );
@@ -1056,21 +1147,38 @@ public class MainActivity extends Activity {
 
     private void findApkFile() {
 
-        rawUri = getIntent().getData();
+        rawUri =
+                getIntent().getData();
 
         File file = null;
 
-        String realPath =
-                UriAnalyser.getRealPath(
-                        this,
-                        rawUri
-                );
+        if (rawUri != null) {
 
-        if (realPath != null) {
-            file = new File(realPath);
+            try {
+
+                String realPath =
+                        UriAnalyser.getRealPath(
+                                this,
+                                rawUri
+                        );
+
+                if (!TextUtils.isEmpty(realPath)) {
+                    file = new File(realPath);
+                }
+
+            } catch (Throwable e) {
+
+                Log.e(
+                        C.LOG_TAG,
+                        "Unable to resolve APK path",
+                        e
+                );
+            }
         }
 
-        if (file != null && !file.exists()) {
+
+        if (file != null &&
+                !file.exists()) {
 
             file =
                     ExtraUtil.tryLastRenamedFile(
@@ -1090,15 +1198,30 @@ public class MainActivity extends Activity {
                     );
         }
 
-        if (file == null || !file.canRead()) {
+
+        if (file == null ||
+                !file.canRead()) {
+
             try {
-                file = UriAnalyser.extractFile(
-                        this,
-                        rawUri,
-                        file
-                );
+
+                if (rawUri != null) {
+
+                    file =
+                            UriAnalyser.extractFile(
+                                    this,
+                                    rawUri,
+                                    file
+                            );
+                }
+
             } catch (Throwable e) {
-                e.printStackTrace();
+
+                Log.e(
+                        C.LOG_TAG,
+                        "Failed to extract APK",
+                        e
+                );
+
                 file = null;
             }
         }
@@ -1106,7 +1229,8 @@ public class MainActivity extends Activity {
         apkFile = file;
     }
 
-        @TargetApi(11)
+
+    @TargetApi(11)
     private void UriDialog(
             Uri uri,
             String title) {
@@ -1207,13 +1331,15 @@ public class MainActivity extends Activity {
             View view,
             final AppInfo appInfo) {
 
-        if (view == null || appInfo == null ||
+        if (view == null ||
+                appInfo == null ||
                 !appInfo.is_ok) {
 
             return;
         }
 
         int[] rows = {
+
                 R.id.tr_first_install,
                 R.id.tr_last_update,
                 R.id.tr_installed_from,
@@ -1245,6 +1371,7 @@ public class MainActivity extends Activity {
         };
 
         int[] tags = {
+
                 R.id.tv_tag_first_install,
                 R.id.tv_tag_last_update,
                 R.id.tv_tag_installed_from,
@@ -1276,6 +1403,7 @@ public class MainActivity extends Activity {
         };
 
         int[] values = {
+
                 R.id.tv_first_install,
                 R.id.tv_last_update,
                 R.id.tv_installed_from,
@@ -1307,10 +1435,35 @@ public class MainActivity extends Activity {
         };
 
         boolean[] span = {
-                false, false, true, true, true, false, false,
-                false, false, false, false, false, true, true,
-                true, true, true, false, false, true, true, true,
-                true, true, false, false, false, true
+
+                false,
+                false,
+                true,
+                true,
+                true,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                true,
+                true,
+                true,
+                true,
+                true,
+                false,
+                false,
+                true,
+                true,
+                true,
+                true,
+                true,
+                false,
+                false,
+                false,
+                true
         };
 
         String[] infos =
@@ -1322,15 +1475,19 @@ public class MainActivity extends Activity {
         int flagLi =
                 C.ENUM_FLAGS.LI.ordinal();
 
-        for (int i = 0; i < values.length; i++) {
+
+        for (int i = 0;
+             i < values.length;
+             i++) {
 
             if (i == flagLi) {
                 continue;
             }
 
-            View row = view.findViewById(
-                    rows[i]
-            );
+            View row =
+                    view.findViewById(
+                            rows[i]
+                    );
 
             if (row == null) {
                 continue;
@@ -1355,7 +1512,9 @@ public class MainActivity extends Activity {
 
                     if (text != null) {
 
-                        text.setText(infos[i]);
+                        text.setText(
+                                infos[i]
+                        );
 
                         setOldAndroidCopyListener(
                                 text
@@ -1383,7 +1542,9 @@ public class MainActivity extends Activity {
 
                     if (text != null) {
 
-                        text.setText(spans[i]);
+                        text.setText(
+                                spans[i]
+                        );
 
                         setOldAndroidCopyListener(
                                 text
@@ -1394,23 +1555,28 @@ public class MainActivity extends Activity {
         }
 
 
-        for (int i = 0; i < tags.length; i++) {
+        /*
+         * Long click on information labels.
+         */
+        for (int i = 0;
+             i < tags.length;
+             i++) {
 
             View row =
                     view.findViewById(
                             rows[i]
                     );
 
-            TextView tag =
+            final TextView tagView =
                     (TextView) view.findViewById(
                             tags[i]
                     );
 
             if (row != null &&
-                    tag != null &&
+                    tagView != null &&
                     row.getVisibility() != View.GONE) {
 
-                tag.setOnLongClickListener(
+                tagView.setOnLongClickListener(
                         new View.OnLongClickListener() {
 
                             @Override
@@ -1420,13 +1586,15 @@ public class MainActivity extends Activity {
                                 tagHelpDialog(
                                         String.format(
                                                 getString(
-                                                        R.string.dia_item_desc
+                                                        R.string
+                                                                .dia_item_desc
                                                 ),
-                                                ExtraUtil.removeSpaceInTag(
-                                                        ((TextView) v)
-                                                                .getText()
-                                                                .toString()
-                                                ),
+                                                ExtraUtil
+                                                        .removeSpaceInTag(
+                                                                ((TextView) v)
+                                                                        .getText()
+                                                                        .toString()
+                                                        ),
                                                 v.getTag()
                                         )
                                 );
@@ -1439,6 +1607,9 @@ public class MainActivity extends Activity {
         }
 
 
+        /*
+         * Launcher icon.
+         */
         if (appInfo.ic_launcher != null &&
                 ExtraUtil.getBit(
                         hide_flags,
@@ -1482,6 +1653,7 @@ public class MainActivity extends Activity {
                     );
 
             if (iconRow != null) {
+
                 iconRow.setVisibility(
                         View.GONE
                 );
@@ -1494,7 +1666,9 @@ public class MainActivity extends Activity {
     private void setOldAndroidCopyListener(
             TextView textView) {
 
-        if (textView == null || C.SDK >= 11) {
+        if (textView == null ||
+                C.SDK >= 11) {
+
             return;
         }
 
@@ -1529,7 +1703,8 @@ public class MainActivity extends Activity {
 
 
     @TargetApi(11)
-    private void tagHelpDialog(String text) {
+    private void tagHelpDialog(
+            String text) {
 
         if (TextUtils.isEmpty(text)) {
             return;
@@ -1638,7 +1813,8 @@ public class MainActivity extends Activity {
     }
 
 
-    private void refreshData(File file) {
+    private void refreshData(
+            File file) {
 
         if (appInfoUninstalled.is_ok &&
                 file != null &&
@@ -1668,16 +1844,16 @@ public class MainActivity extends Activity {
                 !appInfo.is_ok) {
 
             fail_to_save_icon = true;
+
             return;
         }
 
         if (!is_running) {
 
             saveIcon(appInfo);
+
             return;
         }
-
-        
 
 
         AlertDialog.Builder builder;
@@ -1705,14 +1881,6 @@ public class MainActivity extends Activity {
                         1
                 );
 
-
-        /*
-         * В некоторых версиях исходного проекта
-         * title мог иметь другое имя.
-         *
-         * Если dia_title_save_icon отсутствует,
-         * используй существующий title из strings.xml.
-         */
         builder.setTitle(
                 R.string.dia_title_save_icon
         );
@@ -1816,16 +1984,26 @@ public class MainActivity extends Activity {
                     public void run() {
 
                         boolean saved = false;
+
                         try {
-                            saved = ExtraUtil.saveIcon(
-                                    MainActivity.this,
-                                    appInfo.getLauncherIcon(true),
-                                    appInfo.label,
-                                    appInfo.packageName,
-                                    formats[formatId]
-                            );
+
+                            saved =
+                                    ExtraUtil.saveIcon(
+                                            MainActivity.this,
+                                            appInfo
+                                                    .getLauncherIcon(true),
+                                            appInfo.label,
+                                            appInfo.packageName,
+                                            formats[formatId]
+                                    );
+
                         } catch (Throwable e) {
-                            e.printStackTrace();
+
+                            Log.e(
+                                    C.LOG_TAG,
+                                    "Failed to save icon",
+                                    e
+                            );
                         }
 
                         if (saved) {
@@ -1850,6 +2028,7 @@ public class MainActivity extends Activity {
                 !appInfo.is_ok) {
 
             fail_to_rename = true;
+
             return;
         }
 
@@ -1879,6 +2058,7 @@ public class MainActivity extends Activity {
             if (rename_firstly) {
 
                 rename(appInfo);
+
                 return;
             }
         }
@@ -1915,13 +2095,13 @@ public class MainActivity extends Activity {
 
                 dev_mode
                         ? sp.getInt(
-                        C.SP_APK_NAME_FORMAT_ID_2,
-                        2
-                )
+                                C.SP_APK_NAME_FORMAT_ID_2,
+                                2
+                        )
                         : sp.getInt(
-                        C.SP_APK_NAME_FORMAT_ID,
-                        1
-                ),
+                                C.SP_APK_NAME_FORMAT_ID,
+                                1
+                        ),
 
                 new DialogInterface.OnClickListener() {
 
@@ -1933,13 +2113,13 @@ public class MainActivity extends Activity {
                         int currentId =
                                 dev_mode
                                         ? sp.getInt(
-                                        C.SP_APK_NAME_FORMAT_ID_2,
-                                        2
-                                )
+                                                C.SP_APK_NAME_FORMAT_ID_2,
+                                                2
+                                        )
                                         : sp.getInt(
-                                        C.SP_APK_NAME_FORMAT_ID,
-                                        1
-                                );
+                                                C.SP_APK_NAME_FORMAT_ID,
+                                                1
+                                        );
 
                         if (which == currentId) {
 
@@ -2023,13 +2203,13 @@ public class MainActivity extends Activity {
         int formatId =
                 dev_mode
                         ? sp.getInt(
-                        C.SP_APK_NAME_FORMAT_ID_2,
-                        2
-                )
+                                C.SP_APK_NAME_FORMAT_ID_2,
+                                2
+                        )
                         : sp.getInt(
-                        C.SP_APK_NAME_FORMAT_ID,
-                        1
-                );
+                                C.SP_APK_NAME_FORMAT_ID,
+                                1
+                        );
 
 
         if (formatId < 0 ||
@@ -2039,7 +2219,8 @@ public class MainActivity extends Activity {
         }
 
 
-        int selectedFormat = formatId;
+        int selectedFormat =
+                formatId;
 
 
         if (formatId == 4 &&
@@ -2164,12 +2345,14 @@ public class MainActivity extends Activity {
                 );
 
 
-        for (int i = 0; i < length; i++) {
+        for (int i = 0;
+             i < length;
+             i++) {
 
             selected[i] =
                     allBits[
                             C.ITEMS_FLAG_POS[i]
-                            ];
+                    ];
         }
 
 
@@ -2223,11 +2406,13 @@ public class MainActivity extends Activity {
                             DialogInterface dialog,
                             int which) {
 
-                        for (int i = 0; i < length; i++) {
+                        for (int i = 0;
+                             i < length;
+                             i++) {
 
                             allBits[
                                     C.ITEMS_FLAG_POS[i]
-                                    ] = selected[i];
+                            ] = selected[i];
                         }
 
 
@@ -2521,6 +2706,7 @@ public class MainActivity extends Activity {
                             }
 
                             if (!classList.isEmpty()) {
+
                                 classSpinner.setSelection(
                                         index
                                 );
@@ -2529,9 +2715,10 @@ public class MainActivity extends Activity {
                         } else if (!classList.isEmpty()) {
 
                             classSpinner.setSelection(
-                                    ExtraUtil.guessInstallerActivityPos(
-                                            classList
-                                    )
+                                    ExtraUtil
+                                            .guessInstallerActivityPos(
+                                                    classList
+                                            )
                             );
                         }
 
@@ -2618,7 +2805,8 @@ public class MainActivity extends Activity {
 
                                     String className =
                                             selected[1].startsWith(".")
-                                                    ? selected[0] + selected[1]
+                                                    ? selected[0] +
+                                                    selected[1]
                                                     : selected[1];
 
 
@@ -2680,10 +2868,11 @@ public class MainActivity extends Activity {
                     public void run() {
 
                         packageList.addAll(
-                                ExtraUtil.getAllInstalledPackageNames(
-                                        MainActivity.this,
-                                        true
-                                )
+                                ExtraUtil
+                                        .getAllInstalledPackageNames(
+                                                MainActivity.this,
+                                                true
+                                        )
                         );
 
 
@@ -2750,7 +2939,8 @@ public class MainActivity extends Activity {
 
 
     @TargetApi(14)
-    private void uninstall(String packageName) {
+    private void uninstall(
+            String packageName) {
 
         Intent intent =
                 new Intent();
@@ -2780,13 +2970,18 @@ public class MainActivity extends Activity {
                 Intent.FLAG_ACTIVITY_NEW_TASK
         );
 
+
         try {
 
             startActivity(intent);
 
         } catch (Throwable e) {
 
-            e.printStackTrace();
+            Log.e(
+                    C.LOG_TAG,
+                    "Uninstall failed",
+                    e
+            );
 
             Toast.makeText(
                     this,
@@ -2978,7 +3173,10 @@ public class MainActivity extends Activity {
             );
 
             if (!web) {
-                gotoMarket(packageName, true);
+                gotoMarket(
+                        packageName,
+                        true
+                );
             }
         }
     }
@@ -3033,6 +3231,7 @@ public class MainActivity extends Activity {
 
 
         if (C.SDK < 11) {
+
             subMenu.setGroupVisible(
                     R.id.group_dev_mode,
                     true
@@ -3072,7 +3271,9 @@ public class MainActivity extends Activity {
     public boolean onOptionsItemSelected(
             MenuItem menuItem) {
 
-        int menuId = menuItem.getItemId();
+        int menuId =
+                menuItem.getItemId();
+
 
         if (menuId == R.id.menu_rename) {
 
@@ -3097,7 +3298,8 @@ public class MainActivity extends Activity {
 
             if (scroll instanceof ScrollView &&
                     include != null &&
-                    ((ScrollView) scroll).getScrollY()
+                    ((ScrollView) scroll)
+                            .getScrollY()
                             >= include.getMeasuredHeight()) {
 
                 saveIconDialog(
@@ -3114,7 +3316,8 @@ public class MainActivity extends Activity {
             return true;
 
 
-        } else if (menuId == R.id.menu_view_in_market) {
+        } else if (menuId ==
+                R.id.menu_view_in_market) {
 
             if (!TextUtils.isEmpty(
                     appInfoUninstalled.packageName
@@ -3133,7 +3336,8 @@ public class MainActivity extends Activity {
             return true;
 
 
-        } else if (menuId == R.id.menu_light_theme) {
+        } else if (menuId ==
+                R.id.menu_light_theme) {
 
             sp.reverseAndSave(
                     C.SP_LIGHT_THEME
@@ -3148,7 +3352,8 @@ public class MainActivity extends Activity {
             return true;
 
 
-        } else if (menuId == R.id.menu_batch_rename) {
+        } else if (menuId ==
+                R.id.menu_batch_rename) {
 
             sp.reverseAndSave(
                     C.SP_BATCH_RENAME
@@ -3191,7 +3396,8 @@ public class MainActivity extends Activity {
             return true;
 
 
-        } else if (menuId == R.id.menu_extra_label) {
+        } else if (menuId ==
+                R.id.menu_extra_label) {
 
             sp.reverseAndSave(
                     C.SP_EXTRA_LABEL,
@@ -3207,28 +3413,32 @@ public class MainActivity extends Activity {
             return true;
 
 
-        } else if (menuId == R.id.menu_make_lines) {
+        } else if (menuId ==
+                R.id.menu_make_lines) {
 
             makeLinesDialog();
 
             return true;
 
 
-        } else if (menuId == R.id.menu_set_installer) {
+        } else if (menuId ==
+                R.id.menu_set_installer) {
 
             setInstallerDialog();
 
             return true;
 
 
-        } else if (menuId == R.id.menu_clear_defaults) {
+        } else if (menuId ==
+                R.id.menu_clear_defaults) {
 
             clearDefaults();
 
             return true;
 
 
-        } else if (menuId == R.id.menu_uninstall) {
+        } else if (menuId ==
+                R.id.menu_uninstall) {
 
             uninstall(
                     getPackageName()
@@ -3237,7 +3447,8 @@ public class MainActivity extends Activity {
             return true;
 
 
-        } else if (menuId == R.id.menu_help) {
+        } else if (menuId ==
+                R.id.menu_help) {
 
             helpDialog();
 
