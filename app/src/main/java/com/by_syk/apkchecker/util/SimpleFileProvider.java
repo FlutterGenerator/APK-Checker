@@ -14,32 +14,56 @@ import java.io.FileNotFoundException;
 public class SimpleFileProvider extends ContentProvider {
 
     public static Uri getUriForFile(String authority, File file) {
-
         return new Uri.Builder()
                 .scheme("content")
                 .authority(authority)
-                .path(file.getAbsolutePath())
+                .appendPath(file.getAbsolutePath())
                 .build();
     }
 
-    private static File fileFromUri(Uri uri) {
+    private File getFile(Uri uri) throws FileNotFoundException {
 
         if (uri == null) {
-            return null;
+            throw new FileNotFoundException("URI is null");
         }
 
         String path = uri.getPath();
 
         if (path == null || path.length() == 0) {
-            return null;
+            throw new FileNotFoundException("Empty URI path");
         }
 
-        return new File(path);
+        File file = new File(path);
+
+        if (!file.exists()) {
+            throw new FileNotFoundException(
+                    "File does not exist: " + path
+            );
+        }
+
+        if (!file.isFile()) {
+            throw new FileNotFoundException(
+                    "Not a file: " + path
+            );
+        }
+
+        if (!file.canRead()) {
+            throw new FileNotFoundException(
+                    "File is not readable: " + path
+            );
+        }
+
+        return file;
     }
 
     @Override
     public boolean onCreate() {
         return true;
+    }
+
+    @Override
+    public String getType(Uri uri) {
+        return "application/vnd.android.package-archive";
     }
 
     @Override
@@ -50,33 +74,52 @@ public class SimpleFileProvider extends ContentProvider {
             String[] selectionArgs,
             String sortOrder) {
 
-        File file = fileFromUri(uri);
+        try {
 
-        if (file == null || !file.exists() || !file.canRead()) {
+            File file = getFile(uri);
+
+            String[] columns = new String[]{
+                    OpenableColumns.DISPLAY_NAME,
+                    OpenableColumns.SIZE
+            };
+
+            MatrixCursor cursor =
+                    new MatrixCursor(columns, 1);
+
+            cursor.addRow(
+                    new Object[]{
+                            file.getName(),
+                            file.length()
+                    }
+            );
+
+            return cursor;
+
+        } catch (FileNotFoundException e) {
+
             return null;
         }
-
-        String[] cols = {
-                OpenableColumns.DISPLAY_NAME,
-                OpenableColumns.SIZE
-        };
-
-        MatrixCursor cursor =
-                new MatrixCursor(cols, 1);
-
-        cursor.addRow(
-                new Object[]{
-                        file.getName(),
-                        file.length()
-                }
-        );
-
-        return cursor;
     }
 
     @Override
-    public String getType(Uri uri) {
-        return "application/vnd.android.package-archive";
+    public ParcelFileDescriptor openFile(
+            Uri uri,
+            String mode) throws FileNotFoundException {
+
+        File file = getFile(uri);
+
+        if (!"r".equals(mode) &&
+                !"rt".equals(mode)) {
+
+            throw new FileNotFoundException(
+                    "Read only provider"
+            );
+        }
+
+        return ParcelFileDescriptor.open(
+                file,
+                ParcelFileDescriptor.MODE_READ_ONLY
+        );
     }
 
     @Override
@@ -85,7 +128,7 @@ public class SimpleFileProvider extends ContentProvider {
             ContentValues values) {
 
         throw new UnsupportedOperationException(
-                "Insert not supported."
+                "Insert not supported"
         );
     }
 
@@ -96,7 +139,7 @@ public class SimpleFileProvider extends ContentProvider {
             String[] selectionArgs) {
 
         throw new UnsupportedOperationException(
-                "Delete not supported."
+                "Delete not supported"
         );
     }
 
@@ -108,30 +151,7 @@ public class SimpleFileProvider extends ContentProvider {
             String[] selectionArgs) {
 
         throw new UnsupportedOperationException(
-                "Update not supported."
-        );
-    }
-
-    @Override
-    public ParcelFileDescriptor openFile(
-            Uri uri,
-            String mode)
-            throws FileNotFoundException {
-
-        File file = fileFromUri(uri);
-
-        if (file == null ||
-                !file.exists() ||
-                !file.canRead()) {
-
-            throw new FileNotFoundException(
-                    "APK not found: " + uri
-            );
-        }
-
-        return ParcelFileDescriptor.open(
-                file,
-                ParcelFileDescriptor.MODE_READ_ONLY
+                "Update not supported"
         );
     }
 }
