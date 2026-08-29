@@ -3,6 +3,14 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        release {
+            storeFile file('HunMod.jks')
+            storePassword 'HunMod'
+            keyAlias 'HunMod'
+            keyPassword 'HunMod'
+        }
+    }
     namespace 'com.by_syk.apkchecker'
     compileSdkVersion 36
 
@@ -12,22 +20,11 @@ android {
         targetSdkVersion 36
         versionCode 17011100
         versionName "1.4.7.nightly"
-    }
-	
-	signingConfig signingConfigs.debug
-	
-	signingConfigs {
-        release {
-            storeFile file("HunMod.jks")
-            storePassword "HunMod"
-            keyAlias "HunMod"
-            keyPassword "HunMod"
-        }
+        signingConfig signingConfigs.release
     }
 
     buildTypes {
         release {
-		    signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
