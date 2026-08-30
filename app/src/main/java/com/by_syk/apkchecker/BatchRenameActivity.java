@@ -46,7 +46,7 @@ public class BatchRenameActivity extends Activity {
         super.onCreate(bundle);
         setContentView(R.layout.activity_batch_rename);
         if (Intent.ACTION_SEND_MULTIPLE.equals(getIntent().getAction())) {
-            if (C.SDK >= 23 && checkSelfPermission("android.permission.WRITE_EXTERNAL_STORAGE") != 0) {
+            if (C.SDK >= 23 && C.SDK <= 32 && checkSelfPermission("android.permission.WRITE_EXTERNAL_STORAGE") != 0) {
                 if (shouldShowRequestPermissionRationale("android.permission.WRITE_EXTERNAL_STORAGE")) {
                     Toast.makeText(this, R.string.toast_request_permission, 1).show();
                 }
