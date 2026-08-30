@@ -109,7 +109,7 @@ public class MainActivity extends Activity {
 
         setContentView(R.layout.activity_main);
 
-        if (C.SDK >= 23 &&
+        if (C.SDK >= 23 && C.SDK <= 32 &&
                 checkSelfPermission(
                         "android.permission.WRITE_EXTERNAL_STORAGE"
                 ) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
